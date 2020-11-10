@@ -165,8 +165,13 @@ type WsDepthEvent struct {
 type WsKlineHandler func(event *WsKlineEvent)
 
 // WsKlineServe serve websocket kline handler with a symbol and interval like 15m, 30s
-func WsKlineServe(symbol string, interval string, handler WsKlineHandler, errHandler ErrHandler) (doneC, stopC chan struct{}, err error) {
-	endpoint := fmt.Sprintf("%s/%s@kline_%s", baseURL, strings.ToLower(symbol), interval)
+func WsKlineServe(symbols []string, interval string, handler WsKlineHandler, errHandler ErrHandler) (doneC, stopC chan struct{}, err error) {
+	endpoint := combinedBaseURL
+
+	for _, symbol := range symbols {
+		endpoint +=	fmt.Sprintf("%s@kline_%s/", strings.ToLower(symbol), interval)
+	}
+
 	cfg := newWsConfig(endpoint)
 	wsHandler := func(message []byte) {
 		event := new(WsKlineEvent)
